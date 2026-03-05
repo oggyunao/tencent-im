@@ -989,7 +989,9 @@ func (a *api) SendMessage(groupId string, message *Message) (ret *SendMessageRet
 			}
 		}
 	}
-
+	if len(message.toAccount) > 0 {
+		req.ToAccount = message.toAccount
+	}
 	resp := &sendMessageResp{}
 
 	if err = a.client.Post(serviceGroup, commandSendGroupMsg, req, resp); err != nil {

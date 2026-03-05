@@ -329,6 +329,7 @@ type (
 		OfflinePushInfo       *types.OfflinePushInfo `json:"OfflinePushInfo,omitempty"`       // （选填）离线推送信息配置
 		CloudCustomData       string                 `json:"CloudCustomData,omitempty"`       // （选填）消息自定义数据（云端保存，会发送到对端，程序卸载重装后还能拉取到）
 		GroupAtInfo           []atInfo               `json:"GroupAtInfo,omitempty"`           // （选填）@某个用户或者所有人
+		ToAccount             []string               `json:"To_Account,omitempty"`            // （选填）接收者帐号
 	}
 
 	// 在群组中发送普通消息（响应）

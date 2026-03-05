@@ -56,7 +56,8 @@ type Message struct {
 	customData       interface{}       // 自定义数据
 	sendControls     map[string]bool   // 发送消息控制
 	callbackControls map[string]bool   // 禁用回调
-	atMembers        map[string]bool   // @用户
+	atMembers        map[string]bool   // @用户列表
+	toAccount        []string          // 接收者帐号
 }
 
 func NewMessage() *Message {
@@ -218,4 +219,13 @@ func (m *Message) checkImportError() (err error) {
 	}
 
 	return
+}
+
+func (m *Message) SetToAccount(account ...string) {
+	m.toAccount = account
+}
+
+// GetToAccount 获取接收者帐号
+func (m *Message) GetToAccount() []string {
+	return m.toAccount
 }
