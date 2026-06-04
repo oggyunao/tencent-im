@@ -7,7 +7,7 @@
 
 package mute
 
-import "github.com/robin-hzc/tencent-im/internal/types"
+import "github.com/oggyunao/tencent-im/internal/types"
 
 type (
 	// 设置全局禁言（请求）

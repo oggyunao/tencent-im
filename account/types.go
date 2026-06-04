@@ -8,7 +8,7 @@
 package account
 
 import (
-	"github.com/robin-hzc/tencent-im/internal/types"
+	"github.com/oggyunao/tencent-im/internal/types"
 )
 
 type (

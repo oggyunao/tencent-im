@@ -7,7 +7,7 @@
 
 package operation
 
-import "github.com/robin-hzc/tencent-im/internal/types"
+import "github.com/oggyunao/tencent-im/internal/types"
 
 type (
 	// 拉取运营数据（请求）

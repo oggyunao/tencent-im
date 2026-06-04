@@ -11,8 +11,8 @@ import (
 	"errors"
 	"math/rand"
 
-	"github.com/robin-hzc/tencent-im/internal/enum"
-	"github.com/robin-hzc/tencent-im/internal/types"
+	"github.com/oggyunao/tencent-im/internal/enum"
+	"github.com/oggyunao/tencent-im/internal/types"
 )
 
 var (

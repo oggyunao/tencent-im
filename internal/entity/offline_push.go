@@ -8,8 +8,8 @@
 package entity
 
 import (
-	"github.com/robin-hzc/tencent-im/internal/conv"
-	"github.com/robin-hzc/tencent-im/internal/types"
+	"github.com/oggyunao/tencent-im/internal/conv"
+	"github.com/oggyunao/tencent-im/internal/types"
 )
 
 type offlinePush struct {

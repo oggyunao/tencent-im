@@ -7,7 +7,7 @@
 
 package sns
 
-import "github.com/robin-hzc/tencent-im/internal/types"
+import "github.com/oggyunao/tencent-im/internal/types"
 
 type (
 	// 添加的好友信息

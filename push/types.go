@@ -7,7 +7,7 @@
 
 package push
 
-import "github.com/robin-hzc/tencent-im/internal/types"
+import "github.com/oggyunao/tencent-im/internal/types"
 
 type (
 	// 推送条件

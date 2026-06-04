@@ -10,10 +10,10 @@ package group
 import (
 	"fmt"
 
-	"github.com/robin-hzc/tencent-im/internal/conv"
-	"github.com/robin-hzc/tencent-im/internal/core"
-	"github.com/robin-hzc/tencent-im/internal/enum"
-	"github.com/robin-hzc/tencent-im/internal/types"
+	"github.com/oggyunao/tencent-im/internal/conv"
+	"github.com/oggyunao/tencent-im/internal/core"
+	"github.com/oggyunao/tencent-im/internal/enum"
+	"github.com/oggyunao/tencent-im/internal/types"
 )
 
 const (

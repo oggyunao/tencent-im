@@ -14,15 +14,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/robin-hzc/tencent-im"
-	"github.com/robin-hzc/tencent-im/account"
-	"github.com/robin-hzc/tencent-im/group"
-	"github.com/robin-hzc/tencent-im/operation"
-	"github.com/robin-hzc/tencent-im/private"
-	"github.com/robin-hzc/tencent-im/profile"
-	"github.com/robin-hzc/tencent-im/push"
-	"github.com/robin-hzc/tencent-im/recentcontact"
-	"github.com/robin-hzc/tencent-im/sns"
+	im "github.com/oggyunao/tencent-im"
+	"github.com/oggyunao/tencent-im/account"
+	"github.com/oggyunao/tencent-im/group"
+	"github.com/oggyunao/tencent-im/operation"
+	"github.com/oggyunao/tencent-im/private"
+	"github.com/oggyunao/tencent-im/profile"
+	"github.com/oggyunao/tencent-im/push"
+	"github.com/oggyunao/tencent-im/recentcontact"
+	"github.com/oggyunao/tencent-im/sns"
 )
 
 const (

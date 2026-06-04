@@ -7,7 +7,7 @@
 
 package private
 
-import "github.com/robin-hzc/tencent-im/internal/types"
+import "github.com/oggyunao/tencent-im/internal/types"
 
 type (
 	// 发送消息（请求）

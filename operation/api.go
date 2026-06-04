@@ -10,7 +10,7 @@ package operation
 import (
 	"time"
 
-	"github.com/robin-hzc/tencent-im/internal/core"
+	"github.com/oggyunao/tencent-im/internal/core"
 )
 
 const (
