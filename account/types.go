@@ -103,7 +103,6 @@ type (
 		Instid           int64  `json:"Instid"`           // 设备唯一 ID
 		IsBackground     int64  `json:"IsBackground"`     // 该登录平台的前后台状态：0：该设备处于前台。1：该设备处于后台。
 		CustomIdentifier string `json:"CustomIdentifier"` // 客户自定义设备标识
-
 	}
 
 	// OnlineStatusResult 用户在线状态结构化信息项
