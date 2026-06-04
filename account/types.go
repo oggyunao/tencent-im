@@ -98,15 +98,20 @@ type (
 
 	// OnlineStatusPlatform 详细的登录平台信息
 	OnlineStatusPlatform struct {
-		Platform string `json:"Platform"` // 登录的平台类型。可能的返回值有："iPhone", "Android", "Web", "PC", "iPad", "Mac"。
-		Status   string `json:"Status"`   // 该登录平台的状态
+		Platform         string `json:"Platform"`         // 登录的平台类型。可能的返回值有："iPhone", "Android", "Web", "PC", "iPad", "Mac"。
+		Status           string `json:"Status"`           // 该登录平台的状态
+		Instid           int64  `json:"Instid"`           // 设备唯一 ID
+		IsBackground     int64  `json:"IsBackground"`     // 该登录平台的前后台状态：0：该设备处于前台。1：该设备处于后台。
+		CustomIdentifier string `json:"CustomIdentifier"` // 客户自定义设备标识
+
 	}
 
 	// OnlineStatusResult 用户在线状态结构化信息项
 	OnlineStatusResult struct {
-		UserId string                 `json:"To_Account"` // 用户的 UserID
-		Status string                 `json:"Status"`     // 用户状态，前台运行状态（Online）、后台运行状态（PushOnline）、未登录状态（Offline）
-		Detail []OnlineStatusPlatform `json:"Detail"`     // 详细的登录平台信息
+		UserId       string                 `json:"To_Account"`   // 用户的 UserID
+		Status       string                 `json:"Status"`       // 用户状态，前台运行状态（Online）、后台运行状态（PushOnline）、未登录状态（Offline）
+		CustomStatus string                 `json:"CustomStatus"` // 用户的自定义状态
+		Detail       []OnlineStatusPlatform `json:"Detail"`       // 详细的登录平台信息
 	}
 
 	// OnlineStatusError 状态查询失败的帐号项

@@ -56,7 +56,6 @@ type Options struct {
 }
 
 func NewClient(opt *Options) Client {
-	rand.Seed(time.Now().UnixNano())
 	c := new(client)
 	c.opt = opt
 	c.client = http.NewClient()
