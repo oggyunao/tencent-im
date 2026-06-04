@@ -180,7 +180,7 @@ func TestIm_Account_KickAccount(t *testing.T) {
 
 // 查询帐号在线状态
 func TestIm_Account_QueryAccountOnlineStatus(t *testing.T) {
-	ret, err := NewIM().Account().GetAccountOnlineState(test2, true)
+	ret, err := NewIM().Account().GetAccountOnlineState(test2, true, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func TestIm_Account_QueryAccountsOnlineStatus(t *testing.T) {
 	resp, err := NewIM().Account().GetAccountsOnlineState([]string{
 		test1,
 		test2,
-	})
+	}, true, true)
 	if err != nil {
 		t.Fatal(err)
 	}

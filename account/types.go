@@ -79,8 +79,10 @@ type (
 
 	// 查询帐号在线状态（请求）
 	queryAccountsOnlineStatusReq struct {
-		UserIds      []string `json:"To_Account"`   // （必填）需要查询这些 UserID 的登录状态，一次最多查询500个 UserID 的状态
-		IsNeedDetail int      `json:"IsNeedDetail"` // （选填）是否需要返回详细的登录平台信息。0表示不需要，1表示需要
+		UserIds              []string `json:"To_Account"`           // （必填）需要查询这些 UserID 的登录状态，一次最多查询500个 UserID 的状态
+		IsNeedDetail         int      `json:"IsNeedDetail"`         // （选填）是否需要返回详细的登录平台信息。0表示不需要，1表示需要
+		IsReturnCustomStatus int      `json:"IsReturnCustomStatus"` // （选填）是否需要返回这些 UserID 的自定义状态：0：表示不需要。1：表示需要。
+		IsReturnInstid       int      `json:"IsReturnInstid"`       // （选填）是否需要返回设备 Instid：0：表示不需要。1：表示需要。
 	}
 
 	// 查询帐号在线状态（响应）
@@ -98,11 +100,9 @@ type (
 
 	// OnlineStatusPlatform 详细的登录平台信息
 	OnlineStatusPlatform struct {
-		Platform         string `json:"Platform"`         // 登录的平台类型。可能的返回值有："iPhone", "Android", "Web", "PC", "iPad", "Mac"。
-		Status           string `json:"Status"`           // 该登录平台的状态
-		Instid           int64  `json:"Instid"`           // 设备唯一 ID
-		IsBackground     int64  `json:"IsBackground"`     // 该登录平台的前后台状态：0：该设备处于前台。1：该设备处于后台。
-		CustomIdentifier string `json:"CustomIdentifier"` // 客户自定义设备标识
+		Platform     string `json:"Platform"`     // 登录的平台类型。可能的返回值有："iPhone", "Android", "Web", "PC", "iPad", "Mac"。
+		Status       string `json:"Status"`       // 该登录平台的状态
+		IsBackground int64  `json:"IsBackground"` // 该登录平台的前后台状态：0：该设备处于前台。1：该设备处于后台。
 	}
 
 	// OnlineStatusResult 用户在线状态结构化信息项

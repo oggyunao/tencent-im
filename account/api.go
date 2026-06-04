@@ -83,13 +83,13 @@ type API interface {
 	// 获取用户当前的登录状态。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2566
-	GetAccountOnlineState(userId string, isNeedDetail ...bool) (*OnlineStatusResult, error)
+	GetAccountOnlineState(userId string, isNeedDetail bool, isReturnCustomStatus bool) (*OnlineStatusResult, error)
 
 	// GetAccountsOnlineState 查询多个帐号在线状态
 	// 获取用户当前的登录状态。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2566
-	GetAccountsOnlineState(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error)
+	GetAccountsOnlineState(userIds []string, isNeedDetail bool, isReturnCustomStatus bool) (ret *OnlineStatusRet, err error)
 }
 
 type api struct {
@@ -259,8 +259,8 @@ func (a *api) KickAccount(userId string) (err error) {
 // 获取用户当前的登录状态。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2566
-func (a *api) GetAccountOnlineState(userId string, isNeedDetail ...bool) (*OnlineStatusResult, error) {
-	ret, err := a.GetAccountsOnlineState([]string{userId}, isNeedDetail...)
+func (a *api) GetAccountOnlineState(userId string, isNeedDetail bool, isReturnCustomStatus bool) (*OnlineStatusResult, error) {
+	ret, err := a.GetAccountsOnlineState([]string{userId}, isNeedDetail, isReturnCustomStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -284,12 +284,15 @@ func (a *api) GetAccountOnlineState(userId string, isNeedDetail ...bool) (*Onlin
 // 获取用户当前的登录状态。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2566
-func (a *api) GetAccountsOnlineState(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error) {
+func (a *api) GetAccountsOnlineState(userIds []string, isNeedDetail bool, isReturnCustomStatus bool) (ret *OnlineStatusRet, err error) {
 	req := &queryAccountsOnlineStatusReq{UserIds: userIds}
 	resp := &queryAccountsOnlineStatusResp{}
 
-	if len(isNeedDetail) > 0 && isNeedDetail[0] {
+	if isNeedDetail {
 		req.IsNeedDetail = 1
+	}
+	if isReturnCustomStatus {
+		req.IsReturnCustomStatus = 1
 	}
 
 	if err = a.client.Post(serviceOpenIM, commandQueryAccountsOnlineStatus, req, resp); err != nil {
