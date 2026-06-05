@@ -72,6 +72,7 @@ func testUserIds() []string {
 		test7,
 		test8,
 		test9,
+		assistant,
 	}
 }
 
