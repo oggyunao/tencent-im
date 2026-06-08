@@ -195,6 +195,11 @@ func (m *Message) GetTimestamp() int64 {
 	return m.timestamp
 }
 
+// GetSeq 获取消息序列号
+func (m *Message) GetSeq() int {
+	return m.seq
+}
+
 // 检测发送错误
 func (m *Message) checkSendError() (err error) {
 	if err = m.CheckBodyArgError(); err != nil {
