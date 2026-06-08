@@ -18,6 +18,7 @@ import (
 
 const (
 	serviceGroup                       = "group_open_http_svc"
+	serviceGroupAttr                   = "group_open_attr_http_svc"
 	commandFetchGroupIds               = "get_appid_group_list"
 	commandCreateGroup                 = "create_group"
 	commandDestroyGroup                = "destroy_group"
@@ -42,6 +43,11 @@ const (
 	commandDeleteGroupMsgBySender      = "delete_group_msg_by_sender"
 	commandGetGroupSimpleMsg           = "group_msg_get_simple"
 	commandGetOnlineMemberNum          = "get_online_member_num"
+	commandGetGroupAttr                = "get_group_attr"
+	commandModifyGroupAttr             = "modify_group_attr"
+	commandClearGroupAttr              = "clear_group_attr"
+	commandBanMember                   = "ban_group_member"
+	commandUnbanMember                 = "unban_group_member"
 
 	batchGetGroupsLimit = 50 // 批量获取群组限制
 )
@@ -252,6 +258,36 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/49180
 	GetOnlineMemberNum(groupId string) (num int, err error)
+
+	// GetGroupAttr 获取群自定义属性
+	// App 管理员可以通过该接口获取群自定义属性。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/67012
+	GetGroupAttr(groupId string) (ret *GetGroupAttrRet, err error)
+
+	// ModifyGroupAttr 修改群自定义属性
+	// App 管理员可以通过该接口修改群自定义属性。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/67010
+	ModifyGroupAttr(groupId string, attrs []GroupAttrItem) (err error)
+
+	// ClearGroupAttr 清空群自定义属性
+	// App 管理员可以通过该接口清空群自定义属性。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/67009
+	ClearGroupAttr(groupId string) (err error)
+
+	// BanMember 群成员封禁
+	// App 管理员可以通过该接口封禁群组成员，封禁后成员无法接收消息，并且封禁时间内无法再次进群。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/79249
+	BanMember(groupId string, memberIds []string, duration uint32, description ...string) (err error)
+
+	// UnbanMember 群成员解封
+	// App 管理员可以通过该接口解封成员，解封后，之前封禁的成员可重新进群获取消息。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/79250
+	UnbanMember(groupId string, memberIds []string) (err error)
 }
 
 type api struct {
@@ -1265,6 +1301,12 @@ func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *Fetc
 		case 4:
 			message.priority = MsgPriorityLowest
 		}
+		msgBody := make([]*types.MsgBody, 0, len(item.MsgBody))
+		for i := range item.MsgBody {
+			msgBody = append(msgBody, &item.MsgBody[i])
+		}
+		message.SetBody(msgBody)
+		ret.List = append(ret.List, message)
 	}
 
 	return
@@ -1312,6 +1354,95 @@ func (a *api) GetOnlineMemberNum(groupId string) (num int, err error) {
 	}
 
 	num = resp.OnlineMemberNum
+
+	return
+}
+
+// GetGroupAttr 获取群自定义属性
+// App 管理员可以通过该接口获取群自定义属性。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/67012
+func (a *api) GetGroupAttr(groupId string) (ret *GetGroupAttrRet, err error) {
+	req := &getGroupAttrReq{GroupId: groupId}
+	resp := &getGroupAttrResp{}
+
+	if err = a.client.Post(serviceGroupAttr, commandGetGroupAttr, req, resp); err != nil {
+		return
+	}
+
+	ret = &GetGroupAttrRet{}
+	ret.Attrs = make([]GroupAttrItem, 0, len(resp.GroupAttrAry))
+	ret.Attrs = append(ret.Attrs, resp.GroupAttrAry...)
+
+	return
+}
+
+// ModifyGroupAttr 修改群自定义属性
+// App 管理员可以通过该接口修改群自定义属性。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/67010
+func (a *api) ModifyGroupAttr(groupId string, attrs []GroupAttrItem) (err error) {
+	req := &modifyGroupAttrReq{
+		GroupId:   groupId,
+		GroupAttr: attrs,
+	}
+
+	if err = a.client.Post(serviceGroup, commandModifyGroupAttr, req, &types.ActionBaseResp{}); err != nil {
+		return
+	}
+
+	return
+}
+
+// ClearGroupAttr 清空群自定义属性
+// App 管理员可以通过该接口清空群自定义属性。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/67009
+func (a *api) ClearGroupAttr(groupId string) (err error) {
+	req := &clearGroupAttrReq{GroupId: groupId}
+
+	if err = a.client.Post(serviceGroup, commandClearGroupAttr, req, &types.ActionBaseResp{}); err != nil {
+		return
+	}
+
+	return
+}
+
+// BanMember 群成员封禁
+// App 管理员可以通过该接口封禁群组成员，封禁后成员无法接收消息，并且封禁时间内无法再次进群。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/79249
+func (a *api) BanMember(groupId string, memberIds []string, duration uint32, description ...string) (err error) {
+	req := &banMemberReq{
+		GroupId:        groupId,
+		MembersAccount: memberIds,
+		Duration:       duration,
+	}
+
+	if len(description) > 0 {
+		req.Description = description[0]
+	}
+
+	if err = a.client.Post(serviceGroup, commandBanMember, req, &types.ActionBaseResp{}); err != nil {
+		return
+	}
+
+	return
+}
+
+// UnbanMember 群成员解封
+// App 管理员可以通过该接口解封成员，解封后，之前封禁的成员可重新进群获取消息。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/79250
+func (a *api) UnbanMember(groupId string, memberIds []string) (err error) {
+	req := &unbanMemberReq{
+		GroupId:        groupId,
+		MembersAccount: memberIds,
+	}
+
+	if err = a.client.Post(serviceGroup, commandUnbanMember, req, &types.ActionBaseResp{}); err != nil {
+		return
+	}
 
 	return
 }

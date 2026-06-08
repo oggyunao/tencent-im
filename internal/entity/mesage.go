@@ -109,6 +109,11 @@ func (m *Message) SetContent(msgContent ...interface{}) {
 	m.AddContent(msgContent...)
 }
 
+// SetBody 设置消息体
+func (m *Message) SetBody(body []*types.MsgBody) {
+	m.body = body
+}
+
 // GetBody 获取消息体
 func (m *Message) GetBody() []*types.MsgBody {
 	return m.body

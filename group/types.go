@@ -506,4 +506,51 @@ type (
 		types.ActionBaseResp
 		OnlineMemberNum int `json:"OnlineMemberNum"` // 该群组的在线人数
 	}
+
+	// 群自定义属性键值对
+	GroupAttrItem struct {
+		Key   string `json:"key"`   // 属性key，最大32字节
+		Value string `json:"value"` // 属性value，最大4000字节
+	}
+
+	// 获取群自定义属性（请求）
+	getGroupAttrReq struct {
+		GroupId string `json:"GroupId"` // （必填）获取自定义属性的群 ID
+	}
+
+	// 获取群自定义属性（响应）
+	getGroupAttrResp struct {
+		types.ActionBaseResp
+		GroupAttrAry []GroupAttrItem `json:"GroupAttrAry"` // 自定义属性键值对数组
+	}
+
+	// GetGroupAttrRet 获取群自定义属性返回
+	GetGroupAttrRet struct {
+		Attrs []GroupAttrItem // 自定义属性列表
+	}
+
+	// 修改群自定义属性（请求）
+	modifyGroupAttrReq struct {
+		GroupId   string          `json:"GroupId"`             // （必填）修改自定义属性的群 ID
+		GroupAttr []GroupAttrItem `json:"GroupAttr"`           // （必填）自定义属性列表，key最大16个，key长度最大32字节，value长度最大4000字节
+	}
+
+	// 清空群自定义属性（请求）
+	clearGroupAttrReq struct {
+		GroupId string `json:"GroupId"` // （必填）清空自定义属性的群 ID
+	}
+
+	// 群成员封禁（请求）
+	banMemberReq struct {
+		GroupId        string   `json:"GroupId"`                           // （必填）封禁成员的群 ID
+		MembersAccount []string `json:"Members_Account"`                   // （必填）封禁的群成员账号 ID，单次请求最大20个
+		Duration       uint32   `json:"Duration"`                          // （必填）封禁时长，单位：秒
+		Description    string   `json:"Description,omitempty"`             // （选填）封禁信息，最大长度1000字节
+	}
+
+	// 群成员解封（请求）
+	unbanMemberReq struct {
+		GroupId        string   `json:"GroupId"`           // （必填）解封成员的群 ID
+		MembersAccount []string `json:"Members_Account"`   // （必填）解封成员的账号 ID，单次请求最大20个
+	}
 )
