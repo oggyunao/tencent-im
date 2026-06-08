@@ -466,9 +466,11 @@ type (
 
 	// 拉取群历史消息（请求）
 	fetchMessagesReq struct {
-		GroupId      string `json:"GroupId"`                // （必填）要拉取历史消息的群组 ID
-		ReqMsgSeq    int    `json:"ReqMsgSeq"`              // （选填）拉取消息的最大seq
-		ReqMsgNumber int    `json:"ReqMsgNumber,omitempty"` // （必填）拉取的历史消息的条数，目前一次请求最多返回20条历史消息，所以这里最好小于等于20
+		GroupId         string `json:"GroupId"`                  // （必填）要拉取历史消息的群组 ID
+		ReqMsgSeq       int    `json:"ReqMsgSeq"`                // （选填）拉取消息的最大seq
+		ReqMsgNumber    int    `json:"ReqMsgNumber,omitempty"`   // （必填）拉取的历史消息的条数，目前一次请求最多返回20条历史消息，所以这里最好小于等于20
+		WithRecalledMsg int    `json:"WithRecalledMsg,omitempty"` // （选填）是否带撤回的消息，填1表示需要拉取撤回后的消息；默认不拉取
+		TopicId         string `json:"TopicId,omitempty"`        // （选填）话题 ID，仅支持话题的社群适用
 	}
 
 	// 拉取群历史消息（响应）
@@ -486,14 +488,23 @@ type (
 		List       []*Message // 列表
 	}
 
+	// FetchMessagesOption 拉取群历史消息的可选参数
+	FetchMessagesOption struct {
+		MsgSeq         int    // 拉取消息的最大seq，首次拉取不用填
+		WithRecalledMsg bool  // 是否拉取撤回的消息
+		TopicId        string // 话题 ID，仅支持话题的社群适用
+	}
+
 	rspMsgItem struct {
-		FromUserId   string          `json:"From_Account"`
-		IsPlaceMsg   int             `json:"IsPlaceMsg"`
-		MsgBody      []types.MsgBody `json:"MsgBody"`
-		MsgPriority  int             `json:"MsgPriority"`
-		MsgRandom    uint32          `json:"MsgRandom"`
-		MsgSeq       int             `json:"MsgSeq"`
-		MsgTimeStamp int64           `json:"MsgTimeStamp"`
+		FromUserId     string          `json:"From_Account"`
+		IsPlaceMsg     int             `json:"IsPlaceMsg"`
+		IsSystemMsg    int             `json:"IsSystemMsg"`
+		MsgBody        []types.MsgBody `json:"MsgBody"`
+		MsgPriority    int             `json:"MsgPriority"`
+		MsgRandom      uint32          `json:"MsgRandom"`
+		MsgSeq         int             `json:"MsgSeq"`
+		MsgTimeStamp   int64           `json:"MsgTimeStamp"`
+		CloudCustomData string         `json:"CloudCustomData"`
 	}
 
 	// 获取直播群在线人数（请求）

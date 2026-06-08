@@ -53,7 +53,9 @@ type Message struct {
 	timestamp        int64             // 消息时间戳，UNIX 时间戳（单位：秒）
 	seq              int               // 消息序列号
 	status           MsgStatus         // 消息状态
+	isSystemMsg      bool              // 是否为系统消息
 	customData       interface{}       // 自定义数据
+	cloudCustomData  string            // 云端自定义数据（发送到对端，卸载重装后仍可拉取）
 	sendControls     map[string]bool   // 发送消息控制
 	callbackControls map[string]bool   // 禁用回调
 	atMembers        map[string]bool   // @用户列表
@@ -198,6 +200,26 @@ func (m *Message) GetTimestamp() int64 {
 // GetSeq 获取消息序列号
 func (m *Message) GetSeq() int {
 	return m.seq
+}
+
+// IsSystem 是否为系统消息
+func (m *Message) IsSystem() bool {
+	return m.isSystemMsg
+}
+
+// SetIsSystemMsg 设置是否为系统消息
+func (m *Message) SetIsSystemMsg(isSystem bool) {
+	m.isSystemMsg = isSystem
+}
+
+// GetCloudCustomData 获取云端自定义数据
+func (m *Message) GetCloudCustomData() string {
+	return m.cloudCustomData
+}
+
+// SetCloudCustomData 设置云端自定义数据
+func (m *Message) SetCloudCustomData(data string) {
+	m.cloudCustomData = data
 }
 
 // 检测发送错误

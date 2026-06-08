@@ -242,7 +242,7 @@ type API interface {
 	// 如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2738
-	FetchMessages(groupId string, limit int, msgSeq ...int) (ret *FetchMessagesRet, err error)
+	FetchMessages(groupId string, limit int, opts ...FetchMessagesOption) (ret *FetchMessagesRet, err error)
 
 	// PullMessages 续拉取群历史消息
 	// 本方法由“拉取群历史消息（FetchMessages）”拓展而来
@@ -1255,11 +1255,16 @@ func (a *api) RevokeMemberMessages(groupId, userId string) (err error) {
 // 如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2738
-func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *FetchMessagesRet, err error) {
+func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOption) (ret *FetchMessagesRet, err error) {
 	req := &fetchMessagesReq{GroupId: groupId, ReqMsgNumber: limit}
 
-	if len(msgSeq) > 0 {
-		req.ReqMsgSeq = msgSeq[0]
+	if len(opts) > 0 {
+		opt := opts[0]
+		req.ReqMsgSeq = opt.MsgSeq
+		if opt.WithRecalledMsg {
+			req.WithRecalledMsg = 1
+		}
+		req.TopicId = opt.TopicId
 	}
 
 	resp := &fetchMessagesResp{}
@@ -1271,12 +1276,20 @@ func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *Fetc
 	ret = &FetchMessagesRet{}
 	ret.IsFinished = resp.IsFinished
 
-	if ret.IsFinished == 0 {
+	// IsFinished: 1=已返回全部, 0=未返回全部(消息过长或区间超过20), 2=请求区间消息全过期(更早消息可能仍在)
+	if ret.IsFinished == 0 || ret.IsFinished == 2 {
 		ret.HasMore = true
 	}
 
 	if count := len(resp.RspMsgList); count > 0 {
-		ret.NextSeq = resp.RspMsgList[count-1].MsgSeq - 1
+		// 取最小 MsgSeq 减1作为下次拉取的 ReqMsgSeq
+		minSeq := resp.RspMsgList[0].MsgSeq
+		for _, item := range resp.RspMsgList {
+			if item.MsgSeq < minSeq {
+				minSeq = item.MsgSeq
+			}
+		}
+		ret.NextSeq = minSeq - 1
 
 		if ret.IsFinished == 1 && count == limit {
 			ret.HasMore = true
@@ -1291,6 +1304,8 @@ func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *Fetc
 		message.seq = item.MsgSeq
 		message.timestamp = item.MsgTimeStamp
 		message.status = MsgStatus(item.IsPlaceMsg)
+		message.isSystemMsg = item.IsSystemMsg == 1
+		message.SetCloudCustomData(item.CloudCustomData)
 		switch item.MsgPriority {
 		case 1:
 			message.priority = MsgPriorityHigh
@@ -1326,7 +1341,7 @@ func (a *api) PullMessages(groupId string, limit int, fn func(ret *FetchMessages
 	)
 
 	for ret == nil || ret.HasMore {
-		ret, err = a.FetchMessages(groupId, limit, msgSeq)
+		ret, err = a.FetchMessages(groupId, limit, FetchMessagesOption{MsgSeq: msgSeq})
 		if err != nil {
 			return
 		}
