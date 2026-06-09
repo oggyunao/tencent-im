@@ -8,6 +8,7 @@
 package group
 
 import (
+	"encoding/json"
 	"errors"
 
 	"github.com/oggyunao/tencent-im/internal/entity"
@@ -56,6 +57,7 @@ type Message struct {
 	isSystemMsg      bool              // 是否为系统消息
 	customData       interface{}       // 自定义数据
 	cloudCustomData  string            // 云端自定义数据（发送到对端，卸载重装后仍可拉取）
+	systemMsgBody    json.RawMessage   // 系统消息体原始内容（IsSystemMsg=1时）
 	sendControls     map[string]bool   // 发送消息控制
 	callbackControls map[string]bool   // 禁用回调
 	atMembers        map[string]bool   // @用户列表
@@ -220,6 +222,19 @@ func (m *Message) GetCloudCustomData() string {
 // SetCloudCustomData 设置云端自定义数据
 func (m *Message) SetCloudCustomData(data string) {
 	m.cloudCustomData = data
+}
+
+// GetSystemMsgBody 获取系统消息体原始内容（IsSystemMsg=1时有效）
+func (m *Message) GetSystemMsgBody() json.RawMessage {
+	return m.systemMsgBody
+}
+
+// UnmarshalSystemMsgBody 将系统消息体解析到指定对象中
+func (m *Message) UnmarshalSystemMsgBody(v interface{}) error {
+	if !m.isSystemMsg {
+		return errors.New("not a system message")
+	}
+	return json.Unmarshal(m.systemMsgBody, v)
 }
 
 // 检测发送错误

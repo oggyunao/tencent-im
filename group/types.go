@@ -7,7 +7,11 @@
 
 package group
 
-import "github.com/oggyunao/tencent-im/internal/types"
+import (
+	"encoding/json"
+
+	"github.com/oggyunao/tencent-im/internal/types"
+)
 
 type (
 	// 拉取App中的所有群组（请求）
@@ -467,7 +471,7 @@ type (
 	// 拉取群历史消息（请求）
 	fetchMessagesReq struct {
 		GroupId         string `json:"GroupId"`                  // （必填）要拉取历史消息的群组 ID
-		ReqMsgSeq       int    `json:"ReqMsgSeq"`                // （选填）拉取消息的最大seq
+		ReqMsgSeq       int    `json:"ReqMsgSeq,omitempty"`        // （选填）拉取消息的最大seq
 		ReqMsgNumber    int    `json:"ReqMsgNumber,omitempty"`   // （必填）拉取的历史消息的条数，目前一次请求最多返回20条历史消息，所以这里最好小于等于20
 		WithRecalledMsg int    `json:"WithRecalledMsg,omitempty"` // （选填）是否带撤回的消息，填1表示需要拉取撤回后的消息；默认不拉取
 		TopicId         string `json:"TopicId,omitempty"`        // （选填）话题 ID，仅支持话题的社群适用
@@ -490,21 +494,22 @@ type (
 
 	// FetchMessagesOption 拉取群历史消息的可选参数
 	FetchMessagesOption struct {
-		MsgSeq         int    // 拉取消息的最大seq，首次拉取不用填
-		WithRecalledMsg bool  // 是否拉取撤回的消息
-		TopicId        string // 话题 ID，仅支持话题的社群适用
+		MsgSeq          int    // 拉取消息的最大seq，首次拉取不用填
+		WithRecalledMsg bool   // 是否拉取撤回的消息
+		TopicId         string // 话题 ID，仅支持话题的社群适用
+		WithSystemMsg   bool   // 是否返回系统消息，默认 false（过滤系统消息）
 	}
 
 	rspMsgItem struct {
-		FromUserId     string          `json:"From_Account"`
-		IsPlaceMsg     int             `json:"IsPlaceMsg"`
-		IsSystemMsg    int             `json:"IsSystemMsg"`
-		MsgBody        []types.MsgBody `json:"MsgBody"`
-		MsgPriority    int             `json:"MsgPriority"`
-		MsgRandom      uint32          `json:"MsgRandom"`
-		MsgSeq         int             `json:"MsgSeq"`
-		MsgTimeStamp   int64           `json:"MsgTimeStamp"`
-		CloudCustomData string         `json:"CloudCustomData"`
+		FromUserId      string          `json:"From_Account"`
+		IsPlaceMsg      int             `json:"IsPlaceMsg"`
+		IsSystemMsg     int             `json:"IsSystemMsg"`
+		MsgBody         json.RawMessage `json:"MsgBody"` // IsSystemMsg=0时为[]MsgBody数组, IsSystemMsg=1时为系统消息对象
+		MsgPriority     int             `json:"MsgPriority"`
+		MsgRandom       uint32          `json:"MsgRandom"`
+		MsgSeq          int             `json:"MsgSeq"`
+		MsgTimeStamp    int64           `json:"MsgTimeStamp"`
+		CloudCustomData string          `json:"CloudCustomData"`
 	}
 
 	// 获取直播群在线人数（请求）

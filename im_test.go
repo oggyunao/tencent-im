@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	defaultBaseUrl = "https://adminapiger.im.qcloud.com"
+	defaultBaseUrl = "https://console.tim.qq.com"
 )
 const (
 	assistant     = "assistant"
@@ -1462,12 +1462,86 @@ func TestIm_Group_ImportMembers(t *testing.T) {
 
 // 拉取群历史消息
 func TestIm_Group_FetchMessages(t *testing.T) {
-	ret, err := NewIM().Group().FetchMessages("test_group2", 5)
+	ret, err := NewIM().Group().FetchMessages("@TGS#aY4RVPQT3", 20)
 	if err != nil {
 		handleError(t, "group.FetchMessages", err)
 	}
 
-	t.Log(ret)
+	t.Logf("IsFinished: %d", ret.IsFinished)
+	t.Logf("HasMore: %v", ret.HasMore)
+	t.Logf("NextSeq: %d", ret.NextSeq)
+	t.Logf("消息条数: %d", len(ret.List))
+
+	for i, msg := range ret.List {
+		t.Logf("--- 消息[%d] ---", i)
+		t.Logf("  Sender: %s", msg.GetSender())
+		t.Logf("  Seq: %d", msg.GetSeq())
+		t.Logf("  Timestamp: %d", msg.GetTimestamp())
+		t.Logf("  Status: %v", msg.GetStatus())
+		t.Logf("  Priority: %s", msg.GetPriority())
+		t.Logf("  IsSystem: %v", msg.IsSystem())
+		t.Logf("  CloudCustomData: %s", msg.GetCloudCustomData())
+		t.Logf("  MsgBody: %v", msg.GetBody())
+	}
+}
+
+// 拉取群历史消息（带可选参数）
+func TestIm_Group_FetchMessagesWithOptions(t *testing.T) {
+	ret, err := NewIM().Group().FetchMessages("@TGS#aY4RVPQT3", 5, group.FetchMessagesOption{
+		MsgSeq:          0, // 首次拉取填0或不填
+		WithRecalledMsg: true,
+	})
+	if err != nil {
+		handleError(t, "group.FetchMessages", err)
+	}
+
+	t.Logf("IsFinished: %d", ret.IsFinished)
+	t.Logf("HasMore: %v", ret.HasMore)
+	t.Logf("NextSeq: %d", ret.NextSeq)
+	t.Logf("消息条数: %d", len(ret.List))
+
+	for i, msg := range ret.List {
+		t.Logf("--- 消息[%d] ---", i)
+		t.Logf("  Sender: %s", msg.GetSender())
+		t.Logf("  Seq: %d", msg.GetSeq())
+		t.Logf("  Status: %v", msg.GetStatus())
+		t.Logf("  IsSystem: %v", msg.IsSystem())
+		t.Logf("  CloudCustomData: %s", msg.GetCloudCustomData())
+	}
+}
+
+// 分页拉取群历史消息
+func TestIm_Group_FetchMessagesPaging(t *testing.T) {
+	var (
+		err    error
+		ret    *group.FetchMessagesRet
+		msgSeq int
+		page   = 1
+		g      = NewIM().Group()
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = g.FetchMessages("test_group2", 5, group.FetchMessagesOption{MsgSeq: msgSeq})
+		if err != nil {
+			handleError(t, "group.FetchMessages", err)
+		}
+
+		t.Logf("--- 第%d页 ---", page)
+		t.Logf("  IsFinished: %d", ret.IsFinished)
+		t.Logf("  HasMore: %v", ret.HasMore)
+		t.Logf("  NextSeq: %d", ret.NextSeq)
+		t.Logf("  消息条数: %d", len(ret.List))
+
+		for i, msg := range ret.List {
+			t.Logf("  消息[%d]: Sender=%s, Seq=%d, Status=%v, CloudCustomData=%s",
+				i, msg.GetSender(), msg.GetSeq(), msg.GetStatus(), msg.GetCloudCustomData())
+		}
+
+		if ret.HasMore {
+			msgSeq = ret.NextSeq
+		}
+		page++
+	}
 }
 
 // 续拉取群历史消息

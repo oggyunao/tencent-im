@@ -8,6 +8,7 @@
 package group
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/oggyunao/tencent-im/internal/conv"
@@ -1258,6 +1259,7 @@ func (a *api) RevokeMemberMessages(groupId, userId string) (err error) {
 func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOption) (ret *FetchMessagesRet, err error) {
 	req := &fetchMessagesReq{GroupId: groupId, ReqMsgNumber: limit}
 
+	var withSystemMsg bool
 	if len(opts) > 0 {
 		opt := opts[0]
 		req.ReqMsgSeq = opt.MsgSeq
@@ -1265,6 +1267,7 @@ func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOpti
 			req.WithRecalledMsg = 1
 		}
 		req.TopicId = opt.TopicId
+		withSystemMsg = opt.WithSystemMsg
 	}
 
 	resp := &fetchMessagesResp{}
@@ -1298,6 +1301,11 @@ func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOpti
 
 	ret.List = make([]*Message, 0, len(resp.RspMsgList))
 	for _, item := range resp.RspMsgList {
+		// 默认过滤系统消息，除非显式指定 WithSystemMsg = true
+		if item.IsSystemMsg == 1 && !withSystemMsg {
+			continue
+		}
+
 		message := NewMessage()
 		message.SetSender(item.FromUserId)
 		message.SetRandom(item.MsgRandom)
@@ -1316,9 +1324,18 @@ func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOpti
 		case 4:
 			message.priority = MsgPriorityLowest
 		}
-		msgBody := make([]*types.MsgBody, 0, len(item.MsgBody))
-		for i := range item.MsgBody {
-			msgBody = append(msgBody, &item.MsgBody[i])
+		msgBody := make([]*types.MsgBody, 0)
+		if item.IsSystemMsg == 1 {
+			// 系统消息：MsgBody 是对象而非数组，存储原始 JSON
+			message.systemMsgBody = item.MsgBody
+		} else {
+			// 普通消息：MsgBody 是 []MsgBody 数组
+			var bodyList []types.MsgBody
+			if err = json.Unmarshal(item.MsgBody, &bodyList); err == nil {
+				for i := range bodyList {
+					msgBody = append(msgBody, &bodyList[i])
+				}
+			}
 		}
 		message.SetBody(msgBody)
 		ret.List = append(ret.List, message)
