@@ -21,6 +21,7 @@ var (
 	errInvalidGroupType         = core.NewError(enum.InvalidParamsCode, "invalid group type")
 	errGroupIntroductionTooLong = core.NewError(enum.InvalidParamsCode, "group introduction is too long")
 	errGroupNotificationTooLong = core.NewError(enum.InvalidParamsCode, "group notification is too long")
+	errGroupFaceUrlTooLong      = core.NewError(enum.InvalidParamsCode, "group face url is too long")
 )
 
 type (
@@ -35,10 +36,11 @@ type (
 )
 
 const (
-	TypePublic   Type = "Public"     // Public（陌生人社交群）
-	TypePrivate  Type = "Private"    // Private（即 Work，好友工作群）
-	TypeChatRoom Type = "ChatRoom"   // ChatRoom（即 Meeting，会议群）
-	TypeLiveRoom Type = "AVChatRoom" // AVChatRoom（直播群）
+	TypePublic    Type = "Public"    // Public（陌生人社交群）
+	TypePrivate   Type = "Private"   // Private（即 Work，好友工作群）
+	TypeChatRoom  Type = "ChatRoom"  // ChatRoom（即 Meeting，会议群）
+	TypeLiveRoom  Type = "AVChatRoom" // AVChatRoom（直播群）
+	TypeCommunity Type = "Community" // Community（社群，支持话题和权限组）
 
 	ApplyJoinOptionFreeAccess     ApplyJoinOption = "FreeAccess"     // 自由加入
 	ApplyJoinOptionNeedPermission ApplyJoinOption = "NeedPermission" // 需要验证
@@ -295,6 +297,10 @@ func (g *Group) checkCreateError() (err error) {
 		return
 	}
 
+	if err = g.checkFaceUrlError(); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -316,6 +322,10 @@ func (g *Group) checkImportError() (err error) {
 		return
 	}
 
+	if err = g.checkFaceUrlError(); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -330,6 +340,10 @@ func (g *Group) checkUpdateError() (err error) {
 	}
 
 	if err = g.checkNotificationArgError(); err != nil {
+		return
+	}
+
+	if err = g.checkFaceUrlError(); err != nil {
 		return
 	}
 
@@ -356,7 +370,7 @@ func (g *Group) checkTypeArgError() error {
 	}
 
 	switch Type(g.groupType) {
-	case TypePublic, TypePrivate, TypeChatRoom, TypeLiveRoom:
+	case TypePublic, TypePrivate, TypeChatRoom, TypeLiveRoom, TypeCommunity:
 	default:
 		return errInvalidGroupType
 	}
@@ -366,7 +380,7 @@ func (g *Group) checkTypeArgError() error {
 
 // 检测群简介参数错误
 func (g *Group) checkIntroductionArgError() error {
-	if len(g.introduction) > 240 {
+	if len(g.introduction) > 400 {
 		return errGroupIntroductionTooLong
 	}
 
@@ -375,8 +389,17 @@ func (g *Group) checkIntroductionArgError() error {
 
 // 检测群公告参数错误
 func (g *Group) checkNotificationArgError() error {
-	if len(g.notification) > 300 {
+	if len(g.notification) > 400 {
 		return errGroupNotificationTooLong
+	}
+
+	return nil
+}
+
+// 检测群头像参数错误
+func (g *Group) checkFaceUrlError() error {
+	if len(g.avatar) > 500 {
+		return errGroupFaceUrlTooLong
 	}
 
 	return nil
