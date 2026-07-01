@@ -18,7 +18,7 @@ const (
 
 	// 推送标识
 	PushFlagYes = enum.PushFlagYes // 正常推送
-	PushFlagNo  = enum.PushFlagYes // 不离线推送
+	PushFlagNo  = enum.PushFlagNo  // 不离线推送
 
 	// 华为推送通知消息分类
 	HuaWeiImportanceLow    = enum.HuaWeiImportanceLow    // LOW类消息
