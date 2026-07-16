@@ -349,6 +349,33 @@ type (
 		MsgTime int // 消息时间戳，UNIX 时间戳
 	}
 
+	// SendBroadcastMessageParam 直播群广播消息参数
+	SendBroadcastMessageParam struct {
+		FromUserId      string           // （选填）消息来源帐号，默认使用 App 管理员帐号
+		Random          uint32           // （必填）无符号32位整数。5分钟内随机数和内容相同则被视为重复消息丢弃
+		MsgBody         []*types.MsgBody // （必填）消息体，支持多个消息元素，总计不超过12K字节
+		CloudCustomData string           // （选填）消息自定义数据（云端保存，会发送到对端，程序卸载重装后还能拉取到）
+	}
+
+	// 直播群广播消息（请求）
+	sendBroadcastMsgReq struct {
+		FromUserId      string           `json:"From_Account,omitempty"`    // （选填）消息来源帐号
+		Random          uint32           `json:"Random"`                    // （必填）无符号32位整数
+		MsgBody         []*types.MsgBody `json:"MsgBody"`                   // （必填）消息体
+		CloudCustomData string           `json:"CloudCustomData,omitempty"` // （选填）消息自定义数据
+	}
+
+	// 直播群广播消息（响应）
+	sendBroadcastMsgResp struct {
+		types.ActionBaseResp
+		MsgSeq int `json:"MsgSeq"`
+	}
+
+	// SendBroadcastMessageRet 直播群广播消息发送结果
+	SendBroadcastMessageRet struct {
+		MsgSeq int // 消息序列号，唯一标识一条消息
+	}
+
 	atInfo struct {
 		GroupAtAllFlag int    `json:"GroupAtAllFlag"`
 		GroupAtUserId  string `json:"GroupAt_Account,omitempty"`

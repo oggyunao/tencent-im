@@ -34,6 +34,7 @@ const (
 	commandForbidSendMsg               = "forbid_send_msg"
 	commandGetGroupShuttedUin          = "get_group_shutted_uin"
 	commandSendGroupMsg                = "send_group_msg"
+	commandSendBroadcastMsg            = "send_broadcast_msg"
 	commandSendGroupSystemNotification = "send_group_system_notification"
 	commandChangeGroupOwner            = "change_group_owner"
 	commandRecallGroupMsg              = "group_msg_recall"
@@ -177,6 +178,12 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1629
 	SendMessage(groupId string, message *Message) (ret *SendMessageRet, err error)
+
+	// SendBroadcastMessage 直播群广播消息
+	// App 管理员可以通过该接口向所有直播群下发广播消息。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/77402
+	SendBroadcastMessage(param *SendBroadcastMessageParam) (ret *SendBroadcastMessageRet, err error)
 
 	// SendNotification 在群组中发送系统通知
 	// App 管理员可以通过该接口在群组中发送系统通知。
@@ -1038,6 +1045,31 @@ func (a *api) SendMessage(groupId string, message *Message) (ret *SendMessageRet
 			MsgSeq:  resp.MsgSeq,
 			MsgTime: resp.MsgTime,
 		}
+	}
+
+	return
+}
+
+// SendBroadcastMessage 直播群广播消息
+// App 管理员可以通过该接口向所有直播群下发广播消息。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/77402
+func (a *api) SendBroadcastMessage(param *SendBroadcastMessageParam) (ret *SendBroadcastMessageRet, err error) {
+	req := &sendBroadcastMsgReq{
+		FromUserId:      param.FromUserId,
+		Random:          param.Random,
+		MsgBody:         param.MsgBody,
+		CloudCustomData: param.CloudCustomData,
+	}
+
+	resp := &sendBroadcastMsgResp{}
+
+	if err = a.client.Post(serviceGroup, commandSendBroadcastMsg, req, resp); err != nil {
+		return
+	}
+
+	ret = &SendBroadcastMessageRet{
+		MsgSeq: resp.MsgSeq,
 	}
 
 	return
