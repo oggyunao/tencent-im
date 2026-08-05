@@ -135,7 +135,11 @@ func (c *client) getUserSig() string {
 		expiration = defaultExpiration
 	}
 
-	if c.userSig == "" || c.userSigExpireAt <= now.Unix() {
+	// 提前 5 分钟刷新，避免边界时钟偏差导致 UserSig expired 错误
+	const refreshSlack = 5 * 60
+	refreshThreshold := c.userSigExpireAt - refreshSlack
+
+	if c.userSig == "" || now.Unix() >= refreshThreshold {
 		c.userSig, _ = sign.GenUserSig(c.opt.AppId, c.opt.AppSecret, c.opt.UserId, expiration)
 		c.userSigExpireAt = now.Add(time.Duration(expiration) * time.Second).Unix()
 	}
