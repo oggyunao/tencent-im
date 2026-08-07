@@ -44,7 +44,7 @@ func (u *User) GetNickname() (nickname string, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrNickname); exist {
-		nickname = v.(string)
+		nickname, exist = stringAttr(v)
 	}
 
 	return
@@ -60,7 +60,10 @@ func (u *User) GetGender() (gender types.GenderType, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrGender); exist {
-		gender = types.GenderType(v.(string))
+		var s string
+		if s, exist = stringAttr(v); exist {
+			gender = types.GenderType(s)
+		}
 	}
 
 	return
@@ -72,13 +75,27 @@ func (u *User) SetBirthday(birthday time.Time) {
 	u.SetAttr(enum.StandardAttrBirthday, b)
 }
 
-// GetBirthday 获取昵称
+// GetBirthday 获取生日
 func (u *User) GetBirthday() (birthday time.Time, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrBirthday); exist {
-		if val := v.(string); val != "" {
-			birthday, _ = time.Parse("20060102", val)
+		var s string
+		switch val := v.(type) {
+		case string:
+			s = val
+		case int:
+			s = strconv.Itoa(val)
+		case int64:
+			s = strconv.FormatInt(val, 10)
+		case float64:
+			s = strconv.FormatInt(int64(val), 10)
+		}
+
+		if s != "" {
+			birthday, _ = time.Parse("20060102", s)
+		} else {
+			exist = false
 		}
 	}
 
@@ -115,7 +132,11 @@ func (u *User) GetLocation() (country uint32, province uint32, city uint32, regi
 	var v interface{}
 
 	if v, exist = u.attrs[enum.StandardAttrLocation]; exist {
-		str := v.(string)
+		str, ok := stringAttr(v)
+		if !ok {
+			exist = false
+			return
+		}
 
 		if len(str) != 16 {
 			exist = false
@@ -164,7 +185,7 @@ func (u *User) GetSignature() (signature string, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrSignature); exist {
-		signature = v.(string)
+		signature, exist = stringAttr(v)
 	}
 
 	return
@@ -180,7 +201,10 @@ func (u *User) GetAllowType() (allowType types.AllowType, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrAllowType); exist {
-		allowType = types.AllowType(v.(string))
+		var s string
+		if s, exist = stringAttr(v); exist {
+			allowType = types.AllowType(s)
+		}
 	}
 
 	return
@@ -196,7 +220,7 @@ func (u *User) GetLanguage() (language uint, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrLanguage); exist {
-		language = uint(v.(float64))
+		language, exist = uintAttr(v)
 	}
 
 	return
@@ -212,7 +236,7 @@ func (u *User) GetAvatar() (avatar string, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrAvatar); exist {
-		avatar = v.(string)
+		avatar, exist = stringAttr(v)
 	}
 
 	return
@@ -228,7 +252,7 @@ func (u *User) GetMsgSettings() (settings uint, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrMsgSettings); exist {
-		settings = uint(v.(float64))
+		settings, exist = uintAttr(v)
 	}
 
 	return
@@ -244,7 +268,10 @@ func (u *User) GetAdminForbidType() (forbidType types.AdminForbidType, exist boo
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrAdminForbidType); exist {
-		forbidType = types.AdminForbidType(v.(string))
+		var s string
+		if s, exist = stringAttr(v); exist {
+			forbidType = types.AdminForbidType(s)
+		}
 	}
 
 	return
@@ -260,7 +287,7 @@ func (u *User) GetLevel() (level uint, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrLevel); exist {
-		level = uint(v.(float64))
+		level, exist = uintAttr(v)
 	}
 
 	return
@@ -276,7 +303,7 @@ func (u *User) GetRole() (role uint, exist bool) {
 	var v interface{}
 
 	if v, exist = u.GetAttr(enum.StandardAttrRole); exist {
-		role = uint(v.(float64))
+		role, exist = uintAttr(v)
 	}
 
 	return
@@ -327,4 +354,38 @@ func (u *User) GetAttr(name string) (value interface{}, exist bool) {
 // GetAttrs 获取所有属性
 func (u *User) GetAttrs() map[string]interface{} {
 	return u.attrs
+}
+
+// stringAttr 安全地把属性值转换为字符串，兼容本地设置值与云端返回值的类型差异
+func stringAttr(v interface{}) (s string, ok bool) {
+	switch val := v.(type) {
+	case string:
+		return val, true
+	case types.GenderType:
+		return string(val), true
+	case types.AllowType:
+		return string(val), true
+	case types.AdminForbidType:
+		return string(val), true
+	}
+
+	return "", false
+}
+
+// uintAttr 安全地把属性值转换为无符号整数，兼容本地设置值与云端返回值的类型差异
+func uintAttr(v interface{}) (n uint, ok bool) {
+	switch val := v.(type) {
+	case uint:
+		return val, true
+	case int:
+		return uint(val), true
+	case int32:
+		return uint(val), true
+	case int64:
+		return uint(val), true
+	case float64:
+		return uint(val), true
+	}
+
+	return 0, false
 }

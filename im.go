@@ -27,6 +27,9 @@ import (
 
 type Error = core.Error
 
+// UserSig默认有效期（秒）
+const defaultUserSigExpiration = 3600
+
 type (
 	IM interface {
 		// GetUserSig 获取UserSig签名
@@ -124,12 +127,18 @@ func NewIM(opt *Options) IM {
 
 // GetUserSig 获取UserSig签名
 func (i *im) GetUserSig(userId string, expiration ...int) UserSig {
-	if len(expiration) == 0 {
-		expiration = append(expiration, i.opt.Expiration)
+	expire := i.opt.Expiration
+	if len(expiration) > 0 {
+		expire = expiration[0]
 	}
 
-	userSig, _ := sign.GenUserSig(i.opt.AppId, i.opt.AppSecret, userId, expiration[0])
-	expireAt := time.Now().Add(time.Duration(i.opt.Expiration) * time.Second).Unix()
+	// 未设置有效期时兜底为3600秒，避免生成有效期为0的无效签名
+	if expire <= 0 {
+		expire = defaultUserSigExpiration
+	}
+
+	userSig, _ := sign.GenUserSig(i.opt.AppId, i.opt.AppSecret, userId, expire)
+	expireAt := time.Now().Add(time.Duration(expire) * time.Second).Unix()
 	return UserSig{UserSig: userSig, ExpireAt: expireAt}
 }
 

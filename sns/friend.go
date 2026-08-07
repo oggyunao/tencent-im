@@ -45,7 +45,10 @@ func (f *Friend) SetAddSource(addSource string) {
 func (f *Friend) GetAddSource() (addSource string, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrAddSource); exist {
-		addSource = strings.TrimLeft(v.(string), "AddSource_Type_")
+		var s string
+		if s, exist = stringAttr(v); exist {
+			addSource = strings.TrimPrefix(s, "AddSource_Type_")
+		}
 	}
 
 	return
@@ -55,7 +58,7 @@ func (f *Friend) GetAddSource() (addSource string, exist bool) {
 func (f *Friend) GetSrcAddSource() (addSource string, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrAddSource); exist {
-		addSource = v.(string)
+		addSource, exist = stringAttr(v)
 	}
 
 	return
@@ -70,7 +73,7 @@ func (f *Friend) SetRemark(remark string) {
 func (f *Friend) GetRemark() (remark string, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrRemark); exist {
-		remark = v.(string)
+		remark, exist = stringAttr(v)
 	}
 
 	return
@@ -85,9 +88,14 @@ func (f *Friend) SetGroup(groupName ...string) {
 func (f *Friend) GetGroup() (groups []string, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrGroup); exist && v != nil {
-		if vv, ok := v.([]interface{}); ok {
+		switch vv := v.(type) {
+		case []string:
+			groups = append(groups, vv...)
+		case []interface{}:
 			for _, group := range vv {
-				groups = append(groups, group.(string))
+				if s, ok := group.(string); ok {
+					groups = append(groups, s)
+				}
 			}
 		}
 	}
@@ -104,7 +112,7 @@ func (f *Friend) SetAddWording(addWording string) {
 func (f *Friend) GetAddWording() (addWording string, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrAddWording); exist {
-		addWording = v.(string)
+		addWording, exist = stringAttr(v)
 	}
 
 	return
@@ -119,7 +127,7 @@ func (f *Friend) SetAddTime(addTime int64) {
 func (f *Friend) GetAddTime() (addTime int64, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrAddTime); exist {
-		addTime = v.(int64)
+		addTime, exist = int64Attr(v)
 	}
 
 	return
@@ -134,7 +142,7 @@ func (f *Friend) SetRemarkTime(remarkTime int64) {
 func (f *Friend) GetRemarkTime() (remarkTime int64, exist bool) {
 	var v interface{}
 	if v, exist = f.GetAttr(FriendAttrRemarkTime); exist {
-		remarkTime = v.(int64)
+		remarkTime, exist = int64Attr(v)
 	}
 
 	return
@@ -203,4 +211,27 @@ func (f *Friend) checkError() error {
 	}
 
 	return nil
+}
+
+// stringAttr 安全地把属性值转换为字符串，兼容本地设置值与云端返回值的类型差异
+func stringAttr(v interface{}) (s string, ok bool) {
+	if s, ok = v.(string); ok {
+		return
+	}
+
+	return "", false
+}
+
+// int64Attr 安全地把属性值转换为int64，兼容本地设置值与云端返回值的类型差异
+func int64Attr(v interface{}) (n int64, ok bool) {
+	switch val := v.(type) {
+	case int64:
+		return val, true
+	case int:
+		return int64(val), true
+	case float64:
+		return int64(val), true
+	}
+
+	return 0, false
 }

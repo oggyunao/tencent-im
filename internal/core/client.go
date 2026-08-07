@@ -10,6 +10,7 @@ package core
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/oggyunao/tencent-im/internal/enum"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	defaultBaseUrl     = "https://adminapiger.im.qcloud.com"
+	defaultBaseUrl     = "https://console.tim.qq.com"
 	defaultVersion     = "v4"
 	defaultContentType = "json"
 	defaultExpiration  = 3600
@@ -43,6 +44,7 @@ type Client interface {
 type client struct {
 	client          *http.Client
 	opt             *Options
+	mu              sync.Mutex
 	userSig         string
 	userSigExpireAt int64
 }
@@ -56,11 +58,16 @@ type Options struct {
 }
 
 func NewClient(opt *Options) Client {
+	baseUrl := opt.BaseUrl
+	if baseUrl == "" {
+		baseUrl = defaultBaseUrl
+	}
+
 	c := new(client)
 	c.opt = opt
 	c.client = http.NewClient()
 	c.client.SetContentType(http.ContentTypeJson)
-	c.client.SetBaseUrl(opt.BaseUrl)
+	c.client.SetBaseUrl(baseUrl)
 
 	return c
 }
@@ -129,6 +136,9 @@ func (c *client) buildUrl(serviceName string, command string) string {
 
 // getUserSig 获取签名
 func (c *client) getUserSig() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	now, expiration := time.Now(), c.opt.Expiration
 
 	if expiration <= 0 {

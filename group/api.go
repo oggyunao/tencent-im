@@ -404,7 +404,6 @@ func (a *api) PullGroups(arg *PullGroupsArg, fn func(ret *FetchGroupsRet)) (err 
 
 		if ret.HasMore {
 			next = ret.Next
-			break
 		}
 	}
 
@@ -491,13 +490,16 @@ func (a *api) GetGroup(groupId string, filter ...*Filter) (group *Group, err err
 		return
 	}
 
-	if len(groups) > 0 {
-		if err = groups[0].err; err != nil {
-			return
-		}
-
-		group = groups[0]
+	if len(groups) == 0 {
+		err = core.NewError(enum.InvalidResponseCode, "group not found")
+		return
 	}
+
+	if err = groups[0].err; err != nil {
+		return
+	}
+
+	group = groups[0]
 
 	return
 }
@@ -579,9 +581,9 @@ func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group,
 					group.AddMembers(member)
 				}
 			}
-
-			groups = append(groups, group)
 		}
+
+		groups = append(groups, group)
 	}
 
 	return
@@ -611,7 +613,13 @@ func (a *api) FetchMembers(groupId string, limit, offset int, filters ...*Filter
 	ret = &FetchMembersRet{}
 	ret.Total = resp.MemberNum
 	ret.List = make([]*Member, 0, len(resp.MemberList))
-	ret.HasMore = resp.MemberNum > limit+offset
+
+	// Limit 为 0 表示一次性获取群内全部成员，无需续拉
+	if limit == 0 {
+		ret.HasMore = false
+	} else {
+		ret.HasMore = resp.MemberNum > limit+offset
+	}
 
 	for _, m := range resp.MemberList {
 		member := &Member{
@@ -1311,11 +1319,6 @@ func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOpti
 	ret = &FetchMessagesRet{}
 	ret.IsFinished = resp.IsFinished
 
-	// IsFinished: 1=已返回全部, 0=未返回全部(消息过长或区间超过20), 2=请求区间消息全过期(更早消息可能仍在)
-	if ret.IsFinished == 0 || ret.IsFinished == 2 {
-		ret.HasMore = true
-	}
-
 	if count := len(resp.RspMsgList); count > 0 {
 		// 取最小 MsgSeq 减1作为下次拉取的 ReqMsgSeq
 		minSeq := resp.RspMsgList[0].MsgSeq
@@ -1326,7 +1329,9 @@ func (a *api) FetchMessages(groupId string, limit int, opts ...FetchMessagesOpti
 		}
 		ret.NextSeq = minSeq - 1
 
-		if ret.IsFinished == 1 && count == limit {
+		// IsFinished: 1=已返回全部, 0=未返回全部(消息过长或区间超过20), 2=请求区间消息全过期(更早消息可能仍在)
+		// 仅当存在更早的拉取区间（NextSeq > 0）时才续拉，否则续拉会退化为重复拉取最新一页
+		if ret.NextSeq > 0 && (ret.IsFinished == 0 || ret.IsFinished == 2 || count == limit) {
 			ret.HasMore = true
 		}
 	}
