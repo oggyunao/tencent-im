@@ -24,6 +24,14 @@ const (
 	defaultVersion     = "v4"
 	defaultContentType = "json"
 	defaultExpiration  = 3600
+
+	// defaultTimeout 单次请求整体超时（含拨号、TLS 握手、读取 body）。
+	// 不设置会导致网络抖动/服务端慢响应时 TCP 读无限期挂起（read: connection timed out）。
+	defaultTimeout = 30 * time.Second
+	// defaultRetryCount 网络层错误（超时、连接失败、IO 等）重试次数，业务错误不重试。
+	defaultRetryCount = 2
+	// defaultRetryInterval 网络层错误重试间隔。
+	defaultRetryInterval = 100 * time.Millisecond
 )
 
 var invalidResponse = NewError(enum.InvalidResponseCode, "invalid response")
@@ -68,6 +76,9 @@ func NewClient(opt *Options) Client {
 	c.client = http.NewClient()
 	c.client.SetContentType(http.ContentTypeJson)
 	c.client.SetBaseUrl(baseUrl)
+	c.client.SetTimeout(defaultTimeout)
+	// 仅对网络层错误（超时/连接失败/IO）重试；业务错误（core.Error）在 Do 成功后由上层处理，不会触发此处重试
+	c.client.SetRetry(defaultRetryCount, defaultRetryInterval)
 
 	return c
 }
